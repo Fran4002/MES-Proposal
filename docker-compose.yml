@@ -9,13 +9,16 @@ services:
       - "27017:27017"
 
   server:
-    build: ./server
+    build:
+      context: ./server
     container_name: proposal-server
+    working_dir: /app
     ports:
       - "5555:5555"
     depends_on:
       - mongodb
     environment:
+      - PORT=5555
       - MONGO_URL=mongodb://mongodb:27017/mes
       - JWT_SECRET=please-change-this-secret
       - JWT_EXPIRES_IN=1h
@@ -23,11 +26,13 @@ services:
     volumes:
       - ./server:/app
       - /app/node_modules
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm start"
 
   client:
-    build: ./client
+    build:
+      context: ./client
     container_name: proposal-client
+    working_dir: /app
     ports:
       - "5173:5173"
     tty: true
