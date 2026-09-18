@@ -1,0 +1,43 @@
+services:
+
+  mongodb:
+    image: mongo
+    container_name: proposal-mongo
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  server:
+    build: ./server
+    container_name: proposal-server
+    ports:
+      - "5555:5555"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/mes
+      - JWT_SECRET=please-change-this-secret
+      - JWT_EXPIRES_IN=1h
+      - CORS_ORIGINS=*
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev"
+
+  client:
+    build: ./client
+    container_name: proposal-client
+    ports:
+      - "5173:5173"
+    tty: true
+    stdin_open: true
+    environment:
+      - VITE_API_URL=http://proposal-server:5555
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+volumes:
+  mongo-data:
+  ollama_data:
