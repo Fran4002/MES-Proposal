@@ -97,6 +97,30 @@ exports.seedData = async (req, res) => {
         status: 'ACTIVE',
       },
       {
+        itemCode: 'RAW-BARE-PCB',
+        name: 'Bare 4-Layer ESC High-TG PCB',
+        description: 'Raw copper substrate circuit board panel for SMT line',
+        category: 'RAW_MATERIAL',
+        unitOfMeasure: 'pcs',
+        quantityOnHand: 250,
+        minStockLevel: 50,
+        unitCost: 4.8,
+        location: 'Warehouse A - Rack 05',
+        status: 'ACTIVE',
+      },
+      {
+        itemCode: 'RAW-MOSFET-PACK',
+        name: 'Automotive MOSFET Power Stage 60V',
+        description: 'High-current surface mount transistor reel for ESCs',
+        category: 'RAW_MATERIAL',
+        unitOfMeasure: 'pcs',
+        quantityOnHand: 1500,
+        minStockLevel: 400,
+        unitCost: 1.25,
+        location: 'Warehouse B - Reel Storage',
+        status: 'ACTIVE',
+      },
+      {
         itemCode: 'ASY-DRONE-FRAME',
         name: 'Milled Carbon-Alloy Frame Core',
         description: 'Precision CNC-milled airframe subassembly',
@@ -109,9 +133,45 @@ exports.seedData = async (req, res) => {
         status: 'ACTIVE',
       },
       {
+        itemCode: 'ASY-DRONE-UNTESTED',
+        name: 'Assembled Drone Airframe (Uncalibrated)',
+        description: 'Full electro-mechanical assembly pending flight avionics calibration',
+        category: 'SUB_ASSEMBLY',
+        unitOfMeasure: 'pcs',
+        quantityOnHand: 12,
+        minStockLevel: 5,
+        unitCost: 295.0,
+        location: 'WIP Area - Station 4',
+        status: 'ACTIVE',
+      },
+      {
+        itemCode: 'ASY-DRONE-CERTIFIED',
+        name: 'Flight-Certified Autonomous Drone',
+        description: 'Fully calibrated quadcopter with validated sensor suite and dynamic balance pass',
+        category: 'SUB_ASSEMBLY',
+        unitOfMeasure: 'pcs',
+        quantityOnHand: 10,
+        minStockLevel: 5,
+        unitCost: 345.0,
+        location: 'QC Clean Room - Bay 02',
+        status: 'ACTIVE',
+      },
+      {
+        itemCode: 'MAT-PACK-BOX',
+        name: 'Mil-Spec Foam & Hard Transit Case',
+        description: 'Weatherproof Pelican-style transport case with custom laser-cut EVA foam',
+        category: 'CONSUMABLE',
+        unitOfMeasure: 'pcs',
+        quantityOnHand: 45,
+        minStockLevel: 15,
+        unitCost: 38.0,
+        location: 'Packaging Supplies - Rack 01',
+        status: 'ACTIVE',
+      },
+      {
         itemCode: 'PRD-AERO-DRONE-X4',
-        name: 'AeroStrike X4 Autonomous Drone',
-        description: 'Industrial quadcopter UAV for survey and inspection',
+        name: 'AeroStrike X4 Autonomous Drone (Retail)',
+        description: 'Industrial quadcopter UAV packaged with ground station, battery, and flight certificate',
         category: 'FINISHED_GOOD',
         unitOfMeasure: 'pcs',
         quantityOnHand: 8,
@@ -132,6 +192,18 @@ exports.seedData = async (req, res) => {
         location: 'Scrap Yard - Bin 03',
         status: 'ACTIVE',
       },
+      {
+        itemCode: 'BYPRD-SOLDER-DROSS',
+        name: 'Recycled Solder Dross & Oxide Skimmings',
+        description: 'High-purity tin-silver solder residue extracted from SMT reflow pot for reclamation',
+        category: 'BY_PRODUCT',
+        unitOfMeasure: 'kg',
+        quantityOnHand: 14,
+        minStockLevel: 0,
+        unitCost: 6.2,
+        location: 'Scrap Yard - Bin 05',
+        status: 'ACTIVE',
+      },
     ]);
 
     // Map itemCode to created item
@@ -142,6 +214,17 @@ exports.seedData = async (req, res) => {
 
     // 2. Seed Work Centers
     const workCenters = await WorkCenter.insertMany([
+      {
+        code: 'WC-SMT-01',
+        name: 'High-Speed SMT Placement Line',
+        description: 'Yamaha surface-mount electronics assembly line for high-density PCBA boards',
+        department: 'Electronics',
+        type: 'MACHINE',
+        capacityPerHour: 24,
+        hourlyRate: 110.0,
+        status: 'RUNNING',
+        currentJob: 'WO-2026-0041 (4-in-1 ESC Batch)',
+      },
       {
         code: 'WC-CNC-01',
         name: '5-Axis CNC Milling Center',
@@ -154,17 +237,6 @@ exports.seedData = async (req, res) => {
         currentJob: 'WO-2026-0042 (Airframe Core)',
       },
       {
-        code: 'WC-SMT-01',
-        name: 'High-Speed SMT Placement Line',
-        description: 'Yamaha surface-mount electronics assembly line',
-        department: 'Electronics',
-        type: 'MACHINE',
-        capacityPerHour: 30,
-        hourlyRate: 110.0,
-        status: 'AVAILABLE',
-        currentJob: '',
-      },
-      {
         code: 'WC-MAN-ASM-01',
         name: 'Main Assembly Workbench 1',
         description: 'Manual mechanical & electrical integration bench with ESD protection',
@@ -173,7 +245,7 @@ exports.seedData = async (req, res) => {
         capacityPerHour: 4,
         hourlyRate: 45.0,
         status: 'AVAILABLE',
-        currentJob: '',
+        currentJob: 'WO-2026-0043 (Final Integration)',
       },
       {
         code: 'WC-TEST-QC-01',
@@ -204,8 +276,50 @@ exports.seedData = async (req, res) => {
       wcMap[wc.code] = wc;
     });
 
-    // 3. Seed Bill of Materials (BOM)
-    // BOM 1: Frame Machining - demonstrates By-Product production!
+    // 3. Seed Bill of Materials (BOM) Pipeline
+    // BOM 1: SMT Electronics Line -> Produces PART-ESC-4IN1 (feeds Main Assembly)
+    const bomESC = await BOM.create({
+      bomCode: 'BOM-SMT-ESC-01',
+      name: '4-in-1 55A ESC Surface Mount PCBA',
+      description: 'High-speed automated surface-mount assembly of 4-channel brushless electronic speed controller',
+      version: '1.0',
+      status: 'ACTIVE',
+      primaryProduct: {
+        item: itemMap['PART-ESC-4IN1']._id,
+        quantity: 1,
+        unitOfMeasure: 'pcs',
+      },
+      secondaryOutputs: [
+        {
+          item: itemMap['BYPRD-SOLDER-DROSS']._id,
+          type: 'BY_PRODUCT',
+          quantity: 0.05,
+          unitOfMeasure: 'kg',
+          costAllocationPercent: 0,
+          notes: 'Reclaimed tin/silver alloy dross skimmings',
+        },
+      ],
+      components: [
+        {
+          item: itemMap['RAW-BARE-PCB']._id,
+          quantity: 1,
+          unitOfMeasure: 'pcs',
+          scrapFactor: 2,
+          notes: 'High-TG 4-layer FR4 bare board',
+        },
+        {
+          item: itemMap['RAW-MOSFET-PACK']._id,
+          quantity: 8,
+          unitOfMeasure: 'pcs',
+          scrapFactor: 1,
+          notes: 'Dual N-channel power FETs for 4-in-1 driver stages',
+        },
+      ],
+      preferredWorkCenter: wcMap['WC-SMT-01']._id,
+      notes: 'Inspect solder paste volume via 3D SPI before component placement',
+    });
+
+    // BOM 2: Frame Machining -> Produces ASY-DRONE-FRAME (feeds Main Assembly) + By-Product
     const bomFrame = await BOM.create({
       bomCode: 'BOM-FRAME-01',
       name: 'CNC Airframe Core Fabrication',
@@ -247,15 +361,15 @@ exports.seedData = async (req, res) => {
       notes: 'Requires tool offset calibration prior to roughing cut',
     });
 
-    // BOM 2: Finished Drone Assembly
-    const bomDrone = await BOM.create({
-      bomCode: 'BOM-AERO-X4',
-      name: 'AeroStrike X4 Final Assembly',
-      description: 'Full electro-mechanical assembly of autonomous inspection drone',
+    // BOM 3: Main Drone Assembly -> Consumes Frame (from CNC) & ESC (from SMT), outputs ASY-DRONE-UNTESTED
+    const bomDroneAsm = await BOM.create({
+      bomCode: 'BOM-AERO-ASM-01',
+      name: 'AeroStrike X4 Electro-Mechanical Integration',
+      description: 'Full electro-mechanical assembly integrating chassis frame, SMT ESC board, motors, and wiring',
       version: '2.0',
       status: 'ACTIVE',
       primaryProduct: {
-        item: itemMap['PRD-AERO-DRONE-X4']._id,
+        item: itemMap['ASY-DRONE-UNTESTED']._id,
         quantity: 1,
         unitOfMeasure: 'pcs',
       },
@@ -266,7 +380,14 @@ exports.seedData = async (req, res) => {
           quantity: 1,
           unitOfMeasure: 'pcs',
           scrapFactor: 0,
-          notes: 'Milled chassis core',
+          notes: 'Milled chassis core from WC-CNC-01',
+        },
+        {
+          item: itemMap['PART-ESC-4IN1']._id,
+          quantity: 1,
+          unitOfMeasure: 'pcs',
+          scrapFactor: 0,
+          notes: 'High-power ESC from WC-SMT-01',
         },
         {
           item: itemMap['PART-BRUSHLESS-MTR']._id,
@@ -274,13 +395,6 @@ exports.seedData = async (req, res) => {
           unitOfMeasure: 'pcs',
           scrapFactor: 1,
           notes: '2 CW motors, 2 CCW motors',
-        },
-        {
-          item: itemMap['PART-ESC-4IN1']._id,
-          quantity: 1,
-          unitOfMeasure: 'pcs',
-          scrapFactor: 0,
-          notes: 'Main power distribution',
         },
         {
           item: itemMap['PART-FLIGHT-CTRL']._id,
@@ -294,7 +408,7 @@ exports.seedData = async (req, res) => {
           quantity: 1,
           unitOfMeasure: 'pcs',
           scrapFactor: 0,
-          notes: 'Power pack with strap',
+          notes: 'Power pack with quick-release harness',
         },
         {
           item: itemMap['RAW-COP-WIRE']._id,
@@ -305,20 +419,80 @@ exports.seedData = async (req, res) => {
         },
       ],
       preferredWorkCenter: wcMap['WC-MAN-ASM-01']._id,
-      notes: 'Flash latest firmware before soldering battery lead',
+      notes: 'Ensure torque driver calibration for motor screws (1.8 Nm)',
+    });
+
+    // BOM 4: Avionics & Flight Test Cell -> Consumes ASY-DRONE-UNTESTED, outputs ASY-DRONE-CERTIFIED
+    const bomQC = await BOM.create({
+      bomCode: 'BOM-AERO-QC-01',
+      name: 'Avionics Calibration & Quality Certification',
+      description: 'IMU accelerometer calibration, dynamic motor thrust balance, and firmware verification',
+      version: '1.0',
+      status: 'ACTIVE',
+      primaryProduct: {
+        item: itemMap['ASY-DRONE-CERTIFIED']._id,
+        quantity: 1,
+        unitOfMeasure: 'pcs',
+      },
+      secondaryOutputs: [],
+      components: [
+        {
+          item: itemMap['ASY-DRONE-UNTESTED']._id,
+          quantity: 1,
+          unitOfMeasure: 'pcs',
+          scrapFactor: 1,
+          notes: 'Assembled drone from WC-MAN-ASM-01',
+        },
+      ],
+      preferredWorkCenter: wcMap['WC-TEST-QC-01']._id,
+      notes: 'Upload flight controller log to MES cloud repository before sign-off',
+    });
+
+    // BOM 5: Final Packaging & Shipping Cell -> Consumes ASY-DRONE-CERTIFIED + Packaging, outputs PRD-AERO-DRONE-X4
+    const bomPkg = await BOM.create({
+      bomCode: 'BOM-AERO-PKG-01',
+      name: 'Drone Final Box Packaging & Serialization',
+      description: 'Precision foam boxing, serial number etching, accessory kit pairing, and tamper-evident sealing',
+      version: '1.0',
+      status: 'ACTIVE',
+      primaryProduct: {
+        item: itemMap['PRD-AERO-DRONE-X4']._id,
+        quantity: 1,
+        unitOfMeasure: 'pcs',
+      },
+      secondaryOutputs: [],
+      components: [
+        {
+          item: itemMap['ASY-DRONE-CERTIFIED']._id,
+          quantity: 1,
+          unitOfMeasure: 'pcs',
+          scrapFactor: 0,
+          notes: 'Flight-certified drone airframe from WC-TEST-QC-01',
+        },
+        {
+          item: itemMap['MAT-PACK-BOX']._id,
+          quantity: 1,
+          unitOfMeasure: 'pcs',
+          scrapFactor: 1,
+          notes: 'Laser-cut EVA foam & transit hardcase',
+        },
+      ],
+      preferredWorkCenter: wcMap['WC-PKG-01']._id,
+      notes: 'Affix barcode batch tracking label to outer carton',
     });
 
     res.json({
       success: true,
-      message: 'Demo MES database seeded successfully!',
+      message: 'Demo MES factory database seeded successfully with 5-stage production flow!',
       stats: {
         inventoryCount: inventoryItems.length,
         workCentersCount: workCenters.length,
-        bomsCount: 2,
+        bomsCount: 5,
       },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 

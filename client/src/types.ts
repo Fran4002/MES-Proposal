@@ -95,3 +95,53 @@ export interface ApiResponse<T> {
   stats?: Record<string, number>;
 }
 
+export interface ProductionMaterialTransfer {
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  category: InventoryCategory;
+  quantity: number;
+  unitOfMeasure: string;
+  isByProduct?: boolean;
+  unitCost?: number;
+  scrapFactor?: number;
+}
+
+export interface ProductionGraphEdge {
+  id: string;
+  sourceWcId: string;
+  targetWcId: string;
+  sourceWcCode: string;
+  targetWcCode: string;
+  materials: ProductionMaterialTransfer[];
+  bomCodes: string[];
+}
+
+export interface ProductionGraphNode {
+  id: string;
+  wc: WorkCenter;
+  boms: BOM[];
+  stage: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  inboundExternalMaterials: ProductionMaterialTransfer[];
+  outboundTerminalMaterials: ProductionMaterialTransfer[];
+  inboundWcTransfers: { fromWcId: string; fromWcCode: string; materials: ProductionMaterialTransfer[] }[];
+  outboundWcTransfers: { toWcId: string; toWcCode: string; materials: ProductionMaterialTransfer[] }[];
+  cycleTimeMinutes: number;
+  simulatedHours: number;
+  isBottleneck?: boolean;
+}
+
+export interface ProductionPlanMetrics {
+  totalStations: number;
+  totalInterCenterFlows: number;
+  simulatedBatchSize: number;
+  bottleneckWc: WorkCenter | null;
+  maxLeadTimeHours: number;
+  totalCostEstimate: number;
+}
+
+

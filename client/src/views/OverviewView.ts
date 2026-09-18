@@ -57,6 +57,7 @@ export async function renderOverviewView(container: HTMLElement, onTabSwitch: (t
             <div class="mes-pill" id="pill-inv">📦 <strong>Inventory:</strong> Raw materials, WIP, by-products, real-time stock</div>
             <div class="mes-pill" id="pill-wc">⚙️ <strong>Work Centers:</strong> Machine capacity, routing, hourly cost, OEE</div>
             <div class="mes-pill" id="pill-bom">📑 <strong>BOMs:</strong> Recipes, scrap allowances, co-products, genealogy</div>
+            <div class="mes-pill" id="pill-plan">🗺️ <strong>Production Plan:</strong> Directed graph of work center inputs, outputs, and bottlenecks</div>
           </div>
           <div class="arch-arrow">↓ Dispatches Machine Commands</div>
         </div>
@@ -69,7 +70,7 @@ export async function renderOverviewView(container: HTMLElement, onTabSwitch: (t
       </div>
     </div>
 
-    <!-- Deep Dive Cards: BOM & Work Centers -->
+    <!-- Deep Dive Cards: BOM, Work Centers, and Production Plan -->
     <div class="deep-dive-grid">
       <div class="card card-accent">
         <div class="card-header">
@@ -98,6 +99,21 @@ export async function renderOverviewView(container: HTMLElement, onTabSwitch: (t
             <li><strong>Real-time State:</strong> Tracks availability (<code>AVAILABLE</code>, <code>RUNNING</code>, <code>MAINTENANCE</code>, <code>OFFLINE</code>).</li>
           </ul>
           <button class="btn btn-outline" id="nav-to-wc">Go to Work Centers →</button>
+        </div>
+      </div>
+
+      <div class="card card-accent">
+        <div class="card-header">
+          <h3>🗺️ Production Plan & Material Lineage</h3>
+        </div>
+        <div class="card-body">
+          <p>The <strong>Production Plan Graph</strong> visualizes how work centers interlock across the factory floor, with outputs from upstream centers feeding downstream operations.</p>
+          <ul class="concept-list">
+            <li><strong>Upstream Output ➔ Downstream Input:</strong> Follow subassembly flows, CNC parts, and PCBA boards through assembly, QA, and packaging.</li>
+            <li><strong>Bottleneck Identification:</strong> Automatically flags throughput bottlenecks and cycle time constraints based on batch size.</li>
+            <li><strong>Interactive Visual Topology:</strong> Pan, zoom, drag work center nodes, and inspect real-time material transfers.</li>
+          </ul>
+          <button class="btn btn-outline" id="nav-to-plan">Go to Production Plan Graph →</button>
         </div>
       </div>
     </div>
@@ -135,9 +151,11 @@ export async function renderOverviewView(container: HTMLElement, onTabSwitch: (t
   // Bind navigation buttons
   document.getElementById('nav-to-bom')?.addEventListener('click', () => onTabSwitch('boms'));
   document.getElementById('nav-to-wc')?.addEventListener('click', () => onTabSwitch('work-centers'));
+  document.getElementById('nav-to-plan')?.addEventListener('click', () => onTabSwitch('production-plan'));
   document.getElementById('pill-inv')?.addEventListener('click', () => onTabSwitch('inventory'));
   document.getElementById('pill-wc')?.addEventListener('click', () => onTabSwitch('work-centers'));
   document.getElementById('pill-bom')?.addEventListener('click', () => onTabSwitch('boms'));
+  document.getElementById('pill-plan')?.addEventListener('click', () => onTabSwitch('production-plan'));
 
   // Bind Seed Data Button
   const seedBtn = document.getElementById('btn-seed-data');

@@ -5,8 +5,9 @@ import { renderOverviewView } from './views/OverviewView.ts';
 import { renderInventoryView } from './views/InventoryView.ts';
 import { renderWorkCentersView } from './views/WorkCentersView.ts';
 import { renderBOMView } from './views/BOMView.ts';
+import { renderProductionPlanView } from './views/ProductionPlanView.ts';
 
-type TabId = 'overview' | 'inventory' | 'work-centers' | 'boms';
+type TabId = 'overview' | 'inventory' | 'work-centers' | 'boms' | 'production-plan';
 
 class App {
   private currentTab: TabId = 'overview';
@@ -44,6 +45,9 @@ class App {
             </button>
             <button class="nav-tab" data-tab="boms">
               <span class="tab-icon">📑</span> Bill of Materials
+            </button>
+            <button class="nav-tab" data-tab="production-plan">
+              <span class="tab-icon">🗺️</span> Production Plan
             </button>
           </nav>
 
@@ -98,7 +102,7 @@ class App {
 
     // Check hash route or default to overview
     const hash = window.location.hash.replace('#', '') as TabId;
-    if (['overview', 'inventory', 'work-centers', 'boms'].includes(hash)) {
+    if (['overview', 'inventory', 'work-centers', 'boms', 'production-plan'].includes(hash)) {
       this.switchTab(hash);
     } else {
       this.switchTab('overview');
@@ -133,6 +137,9 @@ class App {
         break;
       case 'boms':
         renderBOMView(viewContainer);
+        break;
+      case 'production-plan':
+        renderProductionPlanView(viewContainer);
         break;
     }
   }
